@@ -12,6 +12,36 @@ Based on *Petunjuk Teknis Penggunaan API Esign Client Service v2.2.1*.
 
 ## Installation
 
+The package is published on GitHub (public). Until it is listed on Packagist, require it via VCS:
+
+```json
+{
+  "repositories": [
+    {
+      "type": "vcs",
+      "url": "https://github.com/kiiskominfokepri/esign-php"
+    }
+  ],
+  "require": {
+    "kiiskominfokepri/esign-php": "^1.0"
+  }
+}
+```
+
+Then run:
+
+```bash
+composer update kiiskominfokepri/esign-php
+```
+
+Or in one step (if the repository is already declared):
+
+```bash
+composer require kiiskominfokepri/esign-php:^1.0
+```
+
+When the package is available on [Packagist](https://packagist.org), you can omit the `repositories` block and use:
+
 ```bash
 composer require kiiskominfokepri/esign-php
 ```
