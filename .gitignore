@@ -1,0 +1,21 @@
+/vendor/
+/composer.lock
+/.phpunit.result.cache
+/.phpunit.cache/
+/phpunit.xml
+/.idea/
+/.vscode/
+*.swp
+*.swo
+.DS_Store
+.env
+/examples/.env
+*.log
+
+# Local sample/signed PDFs may contain PII — keep only placeholders
+/storage/**
+!/storage/signed/
+!/storage/signed/.gitkeep
+
+# Internal BSrE juknis (do not redistribute unless licensed)
+/pdf-petunjuk-teknis-*.pdf

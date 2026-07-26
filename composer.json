@@ -1,0 +1,46 @@
+{
+    "name": "kiiskominfokepri/esign-php",
+    "description": "PHP Client Library for BSrE (Balai Sertifikasi Elektronik) Esign Client Service API v1 & v2",
+    "type": "library",
+    "license": "proprietary",
+    "keywords": [
+        "esign",
+        "bsre",
+        "bssn",
+        "tanda-tangan-elektronik",
+        "digital-signature"
+    ],
+    "authors": [
+        {
+            "name": "Doni Mustasar",
+            "email": "donny.md17@gmail.com"
+        }
+    ],
+    "require": {
+        "php": "^8.0",
+        "guzzlehttp/guzzle": "^7.8",
+        "ext-json": "*",
+        "ext-fileinfo": "*"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^9.6|^10.5"
+    },
+    "autoload": {
+        "psr-4": {
+            "KiisKepri\\Esign\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "KiisKepri\\Esign\\Tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "test": "phpunit"
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true,
+    "config": {
+        "sort-packages": true
+    }
+}
