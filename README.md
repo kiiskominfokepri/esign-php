@@ -1,5 +1,7 @@
 # esign-php
 
+[![CI](https://github.com/kiiskominfokepri/esign-php/actions/workflows/ci.yml/badge.svg)](https://github.com/kiiskominfokepri/esign-php/actions/workflows/ci.yml)
+
 PHP client library for **BSrE (Balai Sertifikasi Elektronik / BSSN) Esign Client Service API** v1 and v2.
 
 Based on *Petunjuk Teknis Penggunaan API Esign Client Service v2.2.1*.
