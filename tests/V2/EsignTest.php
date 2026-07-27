@@ -14,7 +14,8 @@ use PHPUnit\Framework\TestCase;
 
 class EsignTest extends TestCase
 {
-    private string $samplePdf;
+    /** @var string */
+    private $samplePdf;
 
     protected function setUp(): void
     {
@@ -137,7 +138,7 @@ class EsignTest extends TestCase
             new Response(200, ['Content-Type' => 'application/json'], json_encode(['message' => 'OTP sent'])),
         ]), $history);
 
-        $response = $esign->requestSignTotp(fileCount: 2);
+        $response = $esign->requestSignTotp(null, null, 2);
         $this->assertTrue($response->isSuccess());
 
         $payload = json_decode((string) $history[0]['request']->getBody(), true);

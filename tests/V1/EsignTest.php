@@ -15,7 +15,8 @@ use PHPUnit\Framework\TestCase;
 
 class EsignTest extends TestCase
 {
-    private string $samplePdf;
+    /** @var string */
+    private $samplePdf;
 
     protected function setUp(): void
     {
