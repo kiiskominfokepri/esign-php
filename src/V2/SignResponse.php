@@ -7,9 +7,13 @@ use KiisKepri\Esign\BaseResponse;
 class SignResponse extends BaseResponse
 {
     /** @var list<string> */
-    protected array $outputMap = [];
+    protected $outputMap = [];
 
-    public function setOutputMap(array $map): static
+    /**
+     * @param list<string> $map
+     * @return $this
+     */
+    public function setOutputMap(array $map): self
     {
         $this->outputMap = array_values($map);
         return $this;
