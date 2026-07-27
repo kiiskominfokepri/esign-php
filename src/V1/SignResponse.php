@@ -6,8 +6,11 @@ use KiisKepri\Esign\BaseResponse;
 
 class SignResponse extends BaseResponse
 {
-    private ?string $documentId = null;
-    private string $binaryBody = '';
+    /** @var string|null */
+    private $documentId = null;
+
+    /** @var string */
+    private $binaryBody = '';
 
     protected function decodeBody(): void
     {

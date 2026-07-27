@@ -10,17 +10,38 @@ final class SignatureProperties
     public const TAMPILAN_INVISIBLE = 'INVISIBLE';
     public const TAMPILAN_VISIBLE = 'VISIBLE';
 
-    private string $tampilan;
-    private ?string $imageBase64 = null;
-    private ?int $page = null;
-    private ?float $originX = null;
-    private ?float $originY = null;
-    private ?float $width = null;
-    private ?float $height = null;
-    private ?string $tagKoordinat = null;
-    private ?string $location = null;
-    private ?string $reason = null;
-    private ?string $pdfPassword = null;
+    /** @var string */
+    private $tampilan;
+
+    /** @var string|null */
+    private $imageBase64 = null;
+
+    /** @var int|null */
+    private $page = null;
+
+    /** @var float|null */
+    private $originX = null;
+
+    /** @var float|null */
+    private $originY = null;
+
+    /** @var float|null */
+    private $width = null;
+
+    /** @var float|null */
+    private $height = null;
+
+    /** @var string|null */
+    private $tagKoordinat = null;
+
+    /** @var string|null */
+    private $location = null;
+
+    /** @var string|null */
+    private $reason = null;
+
+    /** @var string|null */
+    private $pdfPassword = null;
 
     private function __construct(string $tampilan)
     {

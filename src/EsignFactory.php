@@ -12,6 +12,11 @@ final class EsignFactory
     public const VERSION_1 = 'v1';
     public const VERSION_2 = 'v2';
 
+    /**
+     * @param array<string, mixed> $guzzleOptions
+     *
+     * @return EsignV1|EsignV2
+     */
     public static function create(
         string $version,
         string $url,
@@ -19,16 +24,24 @@ final class EsignFactory
         string $password,
         array $guzzleOptions = [],
         ?ClientInterface $httpClient = null
-    ): EsignV1|EsignV2 {
-        return match (strtolower($version)) {
-            self::VERSION_1, '1' => new EsignV1($url, $username, $password, $guzzleOptions, $httpClient),
-            self::VERSION_2, '2' => new EsignV2($url, $username, $password, $guzzleOptions, $httpClient),
-            default => throw new InvalidArgumentException(
-                sprintf('Unsupported API version "%s". Use v1 or v2.', $version)
-            ),
-        };
+    ) {
+        switch (strtolower($version)) {
+            case self::VERSION_1:
+            case '1':
+                return new EsignV1($url, $username, $password, $guzzleOptions, $httpClient);
+            case self::VERSION_2:
+            case '2':
+                return new EsignV2($url, $username, $password, $guzzleOptions, $httpClient);
+            default:
+                throw new InvalidArgumentException(
+                    sprintf('Unsupported API version "%s". Use v1 or v2.', $version)
+                );
+        }
     }
 
+    /**
+     * @param array<string, mixed> $guzzleOptions
+     */
     public static function v1(
         string $url,
         string $username,
@@ -39,6 +52,9 @@ final class EsignFactory
         return new EsignV1($url, $username, $password, $guzzleOptions, $httpClient);
     }
 
+    /**
+     * @param array<string, mixed> $guzzleOptions
+     */
     public static function v2(
         string $url,
         string $username,

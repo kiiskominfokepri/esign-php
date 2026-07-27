@@ -11,25 +11,47 @@ final class VisibleSignOptions
     public const MODE_QR = 'qr';
     public const MODE_TAG = 'tag';
 
-    private string $mode;
-    private ?string $imagePath = null;
-    private ?string $linkQr = null;
-    private ?string $tagKoordinat = null;
-    private ?int $page = null;
-    private ?float $xAxis = null;
-    private ?float $yAxis = null;
-    private ?float $width = null;
-    private ?float $height = null;
-    private ?string $reason = null;
-    private ?string $location = null;
-    private ?string $text = null;
+    /** @var string */
+    private $mode;
+
+    /** @var string|null */
+    private $imagePath = null;
+
+    /** @var string|null */
+    private $linkQr = null;
+
+    /** @var string|null */
+    private $tagKoordinat = null;
+
+    /** @var int|null */
+    private $page = null;
+
+    /** @var float|null */
+    private $xAxis = null;
+
+    /** @var float|null */
+    private $yAxis = null;
+
+    /** @var float|null */
+    private $width = null;
+
+    /** @var float|null */
+    private $height = null;
+
+    /** @var string|null */
+    private $reason = null;
+
+    /** @var string|null */
+    private $location = null;
+
+    /** @var string|null */
+    private $text = null;
 
     private function __construct(string $mode)
     {
         $this->mode = $mode;
     }
 
-    
     public static function withImage(
         string $imagePath,
         int $page,
@@ -51,7 +73,6 @@ final class VisibleSignOptions
         return $opts;
     }
 
-    
     public static function withQr(
         string $linkQr,
         int $page,
@@ -71,7 +92,6 @@ final class VisibleSignOptions
         return $opts;
     }
 
-    
     public static function withTag(string $tagKoordinat): self
     {
         $opts = new self(self::MODE_TAG);

@@ -6,12 +6,23 @@ use Psr\Http\Message\ResponseInterface;
 
 abstract class BaseResponse
 {
-    protected int $status;
-    protected mixed $errors = null;
-    protected mixed $data = null;
-    protected mixed $decodedBody = null;
-    protected ResponseInterface $response;
-    protected string $rawBody = '';
+    /** @var int */
+    protected $status;
+
+    /** @var mixed */
+    protected $errors = null;
+
+    /** @var mixed */
+    protected $data = null;
+
+    /** @var mixed */
+    protected $decodedBody = null;
+
+    /** @var ResponseInterface */
+    protected $response;
+
+    /** @var string */
+    protected $rawBody = '';
 
     protected const STATUS_OK = 200;
 
@@ -67,7 +78,10 @@ abstract class BaseResponse
         $this->errors = $this->rawBody !== '' ? $this->rawBody : 'Unknown error';
     }
 
-    public function getErrors(): mixed
+    /**
+     * @return mixed
+     */
+    public function getErrors()
     {
         return $this->errors;
     }
@@ -79,12 +93,18 @@ abstract class BaseResponse
         }
     }
 
-    public function getData(): mixed
+    /**
+     * @return mixed
+     */
+    public function getData()
     {
         return $this->data;
     }
 
-    public function getRaw(): mixed
+    /**
+     * @return mixed
+     */
+    public function getRaw()
     {
         return $this->decodedBody;
     }

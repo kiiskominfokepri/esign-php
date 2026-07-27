@@ -8,7 +8,8 @@ class VerifyDetail
 {
     use HandlesDates;
 
-    private array $detail;
+    /** @var array<string, mixed> */
+    private $detail;
 
     public function __construct(array $detail)
     {
@@ -44,7 +45,11 @@ class VerifyDetail
     {
         $raw = $this->detail['signature_document']['signed_in'] ?? null;
         $dt = $this->parseDate($raw, 'Y-m-d H:i:s.u');
-        return $dt?->setTimezone(new \DateTimeZone('UTC'))->format(\DateTimeInterface::ATOM);
+        if ($dt === null) {
+            return null;
+        }
+
+        return $dt->setTimezone(new \DateTimeZone('UTC'))->format(\DateTimeInterface::ATOM);
     }
 
     public function getSignatureField(): ?string

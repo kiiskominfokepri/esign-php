@@ -4,7 +4,8 @@ namespace KiisKepri\Esign\V2;
 
 class VerifyDetail
 {
-    private array $detail;
+    /** @var array<string, mixed> */
+    private $detail;
 
     public function __construct(array $detail)
     {

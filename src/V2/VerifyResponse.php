@@ -16,7 +16,10 @@ class VerifyResponse extends BaseResponse
         return isset($this->data['signatureCount']) ? (int) $this->data['signatureCount'] : null;
     }
 
-    public function getNotes(): mixed
+    /**
+     * @return mixed
+     */
+    public function getNotes()
     {
         return $this->data['description'] ?? null;
     }
@@ -29,7 +32,9 @@ class VerifyResponse extends BaseResponse
             return [];
         }
 
-        return array_map(static fn ($detail) => new VerifyDetail(is_array($detail) ? $detail : []), $details);
+        return array_map(static function ($detail) {
+            return new VerifyDetail(is_array($detail) ? $detail : []);
+        }, $details);
     }
 
     public function getSummary(): ?string
@@ -39,10 +44,15 @@ class VerifyResponse extends BaseResponse
 
     public function getSigners(): array
     {
-        return array_map(static fn (VerifyDetail $detail) => $detail->getSignerName(), $this->getDetails());
+        return array_map(static function (VerifyDetail $detail) {
+            return $detail->getSignerName();
+        }, $this->getDetails());
     }
 
-    public function getCertificateDetails(): mixed
+    /**
+     * @return mixed
+     */
+    public function getCertificateDetails()
     {
         return $this->data['certificateDetails'] ?? null;
     }
