@@ -153,4 +153,151 @@ class EsignTest extends TestCase
         $this->assertFalse($response->isSuccess());
         $this->assertSame('passphrase salah', $response->getErrors());
     }
+
+    public function testSignGenericInvisibleOk(): void
+    {
+        $history = [];
+        $esign = $this->client(new MockHandler([
+            new Response(200, ['Content-Type' => 'application/pdf'], '%PDF-1.4 generic'),
+        ]), $history)->setNIK('3200123456789012');
+
+        $response = $esign->sign('secret', $this->samplePdf, 'invisible');
+
+        $this->assertTrue($response->isSuccess());
+        $this->assertSame('%PDF-1.4 generic', $response->getBinary());
+
+        $body = (string) $history[0]['request']->getBody();
+        $this->assertStringContainsString('name="tampilan"', $body);
+        $this->assertStringContainsString('invisible', $body);
+        $this->assertStringContainsString('/api/sign/pdf', (string) $history[0]['request']->getUri());
+    }
+
+    public function testSignInvalidTampilanThrows(): void
+    {
+        $esign = $this->client(new MockHandler([]))->setNIK('3200123456789012');
+
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('tampilan must be "invisible" or "visible"');
+        $esign->sign('secret', $this->samplePdf, 'broken');
+    }
+
+    public function testSignVisibleWithoutOptionsThrows(): void
+    {
+        $esign = $this->client(new MockHandler([]))->setNIK('3200123456789012');
+
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('VisibleSignOptions is required when tampilan=visible');
+        $esign->sign('secret', $this->samplePdf, 'visible', null);
+    }
+
+    public function testSignVisibleWithQr(): void
+    {
+        $history = [];
+        $esign = $this->client(new MockHandler([
+            new Response(200, ['Content-Type' => 'application/pdf'], '%PDF-1.4 qr'),
+        ]), $history)->setNIK('3200123456789012');
+
+        $options = VisibleSignOptions::withQr('https://example.go.id/verify/123', 1, 50, 50, 80, 80);
+        $response = $esign->signVisible('secret', $this->samplePdf, $options);
+
+        $this->assertTrue($response->isSuccess());
+        $body = (string) $history[0]['request']->getBody();
+        $this->assertStringContainsString('name="linkQR"', $body);
+        $this->assertStringContainsString('https://example.go.id/verify/123', $body);
+        $this->assertStringContainsString('name="image"', $body);
+        $this->assertStringContainsString('false', $body);
+        $this->assertStringContainsString('name="page"', $body);
+    }
+
+    public function testSignVisibleWithTag(): void
+    {
+        $history = [];
+        $esign = $this->client(new MockHandler([
+            new Response(200, ['Content-Type' => 'application/pdf'], '%PDF-1.4 tag'),
+        ]), $history)->setNIK('3200123456789012');
+
+        $options = VisibleSignOptions::withTag('#ttd');
+        $response = $esign->signVisible('secret', $this->samplePdf, $options);
+
+        $this->assertTrue($response->isSuccess());
+        $body = (string) $history[0]['request']->getBody();
+        $this->assertStringContainsString('name="tag_koordinat"', $body);
+        $this->assertStringContainsString('#ttd', $body);
+        $this->assertStringContainsString('name="tampilan"', $body);
+        $this->assertStringContainsString('visible', $body);
+    }
+
+    public function testDownloadDocumentSuccessWritesFile(): void
+    {
+        $history = [];
+        $esign = $this->client(new MockHandler([
+            new Response(200, ['Content-Type' => 'application/pdf'], '%PDF-1.4 downloaded'),
+        ]), $history);
+
+        $out = sys_get_temp_dir() . '/esign-dl-' . uniqid('', true) . '.pdf';
+        $result = $esign->downloadDocument('DOC-99', $out);
+
+        $this->assertTrue($result);
+        $this->assertSame('%PDF-1.4 downloaded', file_get_contents($out));
+        $this->assertStringContainsString('/api/sign/download/DOC-99', (string) $history[0]['request']->getUri());
+        unlink($out);
+    }
+
+    public function testDownloadDocumentNon200ReturnsFalse(): void
+    {
+        $esign = $this->client(new MockHandler([
+            new Response(404, ['Content-Type' => 'application/json'], json_encode(['error' => 'not found'])),
+        ]));
+
+        $out = sys_get_temp_dir() . '/esign-dl-fail-' . uniqid('', true) . '.pdf';
+        $result = $esign->downloadDocument('MISSING', $out);
+
+        $this->assertFalse($result);
+        $this->assertFalse(is_file($out));
+    }
+
+    public function testDownloadDocumentBinarySuccess(): void
+    {
+        $history = [];
+        $esign = $this->client(new MockHandler([
+            new Response(200, ['id_dokumen' => 'DOC-BIN', 'Content-Type' => 'application/pdf'], '%PDF-1.4 binary'),
+        ]), $history);
+
+        $response = $esign->downloadDocumentBinary('DOC-BIN');
+
+        $this->assertTrue($response->isSuccess());
+        $this->assertSame('%PDF-1.4 binary', $response->getBinary());
+        $this->assertSame('DOC-BIN', $response->getDocumentId());
+        $this->assertStringContainsString('/api/sign/download/DOC-BIN', (string) $history[0]['request']->getUri());
+    }
+
+    public function testCheckUserStatusHitsEndpoint(): void
+    {
+        $history = [];
+        $esign = $this->client(new MockHandler([
+            new Response(200, ['Content-Type' => 'application/json'], json_encode(['status' => 'ISSUE'])),
+        ]), $history);
+
+        $response = $esign->checkUserStatus('3200123456789012');
+
+        $this->assertTrue($response->isSuccess());
+        $this->assertSame(['status' => 'ISSUE'], $response->getData());
+        $this->assertStringContainsString('/api/user/status/3200123456789012', (string) $history[0]['request']->getUri());
+    }
+
+    public function testNikOverrideOnSignInvisible(): void
+    {
+        $history = [];
+        $esign = $this->client(new MockHandler([
+            new Response(200, ['Content-Type' => 'application/pdf'], '%PDF-1.4 override'),
+        ]), $history)->setNIK('1111111111111111');
+
+        $response = $esign->signInvisible('secret', $this->samplePdf, null, '9999999999999999');
+
+        $this->assertTrue($response->isSuccess());
+        $body = (string) $history[0]['request']->getBody();
+        $this->assertStringContainsString('name="nik"', $body);
+        $this->assertStringContainsString('9999999999999999', $body);
+        $this->assertStringNotContainsString('1111111111111111', $body);
+    }
 }
