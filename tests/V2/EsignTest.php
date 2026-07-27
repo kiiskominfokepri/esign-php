@@ -45,6 +45,19 @@ class EsignTest extends TestCase
             ->setEmail('user@example.go.id');
     }
 
+    private function bareClient(MockHandler $mock, array &$history = []): Esign
+    {
+        $stack = HandlerStack::create($mock);
+        $stack->push(Middleware::history($history));
+
+        $http = new Client([
+            'handler' => $stack,
+            'http_errors' => false,
+        ]);
+
+        return new Esign('https://esign.test', 'user', 'pass', [], $http);
+    }
+
     public function testSignInvisibleSendsJsonPayloadWithoutDebugNoise(): void
     {
         $history = [];
@@ -212,11 +225,218 @@ class EsignTest extends TestCase
 
     public function testRequiresIdentity(): void
     {
-        $mock = new MockHandler([]);
-        $http = new Client(['handler' => HandlerStack::create($mock), 'http_errors' => false]);
-        $esign = new Esign('https://esign.test', 'u', 'p', [], $http);
+        $esign = $this->bareClient(new MockHandler([]));
 
         $this->expectException(InvalidArgumentException::class);
         $esign->signInvisible('x', $this->samplePdf);
+    }
+
+    public function testSignLowLevelWithArraySignatureProperties(): void
+    {
+        $history = [];
+        $esign = $this->client(new MockHandler([
+            new Response(200, ['Content-Type' => 'application/json'], json_encode([
+                'file' => [base64_encode('%PDF low')],
+            ])),
+        ]), $history);
+
+        $response = $esign->sign(
+            [$this->samplePdf],
+            [['tampilan' => 'INVISIBLE', 'reason' => 'array-props']],
+            'secret',
+            null,
+            null,
+            null
+        );
+
+        $this->assertTrue($response->isSuccess());
+        $payload = json_decode((string) $history[0]['request']->getBody(), true);
+        $this->assertSame('INVISIBLE', $payload['signatureProperties'][0]['tampilan']);
+        $this->assertSame('array-props', $payload['signatureProperties'][0]['reason']);
+        $this->assertSame('secret', $payload['passphrase']);
+    }
+
+    public function testSignWithTotpOnlyNoPassphrase(): void
+    {
+        $history = [];
+        $esign = $this->client(new MockHandler([
+            new Response(200, ['Content-Type' => 'application/json'], json_encode([
+                'file' => [base64_encode('%PDF totp')],
+            ])),
+        ]), $history);
+
+        $response = $esign->sign(
+            [$this->samplePdf],
+            [SignatureProperties::invisible()],
+            null,
+            '654321'
+        );
+
+        $this->assertTrue($response->isSuccess());
+        $payload = json_decode((string) $history[0]['request']->getBody(), true);
+        $this->assertSame('654321', $payload['totp']);
+        $this->assertArrayNotHasKey('passphrase', $payload);
+    }
+
+    public function testEmailOnlyIdentityWorks(): void
+    {
+        $history = [];
+        $esign = $this->bareClient(new MockHandler([
+            new Response(200, ['Content-Type' => 'application/json'], json_encode([
+                'file' => [base64_encode('%PDF email')],
+            ])),
+        ]), $history)->setEmail('only@example.go.id');
+
+        $response = $esign->signInvisible('secret', $this->samplePdf);
+
+        $this->assertTrue($response->isSuccess());
+        $payload = json_decode((string) $history[0]['request']->getBody(), true);
+        $this->assertSame('only@example.go.id', $payload['email']);
+        $this->assertArrayNotHasKey('nik', $payload);
+    }
+
+    public function testRegisterUserPostsNamaAndEmail(): void
+    {
+        $history = [];
+        $esign = $this->client(new MockHandler([
+            new Response(200, ['Content-Type' => 'application/json'], json_encode(['message' => 'registered'])),
+        ]), $history);
+
+        $response = $esign->registerUser('Nama Lengkap', 'new@example.go.id');
+
+        $this->assertTrue($response->isSuccess());
+        $payload = json_decode((string) $history[0]['request']->getBody(), true);
+        $this->assertSame('Nama Lengkap', $payload['nama']);
+        $this->assertSame('new@example.go.id', $payload['email']);
+        $this->assertStringContainsString('/api/v2/user/register', (string) $history[0]['request']->getUri());
+    }
+
+    public function testRequestSealActivationWithoutTotp(): void
+    {
+        $history = [];
+        $esign = $this->client(new MockHandler([
+            new Response(200, ['Content-Type' => 'application/json'], json_encode(['message' => 'ok'])),
+        ]), $history);
+
+        $response = $esign->requestSealActivation('SUB-1');
+
+        $this->assertTrue($response->isSuccess());
+        $payload = json_decode((string) $history[0]['request']->getBody(), true);
+        $this->assertSame('SUB-1', $payload['idSubscriber']);
+        $this->assertArrayNotHasKey('totp', $payload);
+        $this->assertStringContainsString('/api/v2/seal/get/activation', (string) $history[0]['request']->getUri());
+    }
+
+    public function testRequestSealActivationWithTotp(): void
+    {
+        $history = [];
+        $esign = $this->client(new MockHandler([
+            new Response(200, ['Content-Type' => 'application/json'], json_encode(['message' => 'ok'])),
+        ]), $history);
+
+        $response = $esign->requestSealActivation('SUB-2', '111222');
+
+        $this->assertTrue($response->isSuccess());
+        $payload = json_decode((string) $history[0]['request']->getBody(), true);
+        $this->assertSame('SUB-2', $payload['idSubscriber']);
+        $this->assertSame('111222', $payload['totp']);
+    }
+
+    public function testRevokeSealActivation(): void
+    {
+        $history = [];
+        $esign = $this->client(new MockHandler([
+            new Response(200, ['Content-Type' => 'application/json'], json_encode(['message' => 'revoked'])),
+        ]), $history);
+
+        $response = $esign->revokeSealActivation('SUB-3', '999888');
+
+        $this->assertTrue($response->isSuccess());
+        $payload = json_decode((string) $history[0]['request']->getBody(), true);
+        $this->assertSame('SUB-3', $payload['idSubscriber']);
+        $this->assertSame('999888', $payload['totp']);
+        $this->assertStringContainsString('/api/v2/seal/revoke/activation', (string) $history[0]['request']->getUri());
+    }
+
+    public function testRequestSealTotp(): void
+    {
+        $history = [];
+        $esign = $this->client(new MockHandler([
+            new Response(200, ['Content-Type' => 'application/json'], json_encode(['message' => 'otp'])),
+        ]), $history);
+
+        $response = $esign->requestSealTotp('SUB-4', 3, 'act-totp');
+
+        $this->assertTrue($response->isSuccess());
+        $payload = json_decode((string) $history[0]['request']->getBody(), true);
+        $this->assertSame('SUB-4', $payload['idSubscriber']);
+        $this->assertSame(3, $payload['data']);
+        $this->assertSame('act-totp', $payload['totp']);
+        $this->assertStringContainsString('/api/v2/seal/get/totp', (string) $history[0]['request']->getUri());
+    }
+
+    public function testSignVerificationWithPdfPassword(): void
+    {
+        $history = [];
+        $esign = $this->client(new MockHandler([
+            new Response(200, ['Content-Type' => 'application/json'], json_encode([
+                'documentName' => 'secured.pdf',
+                'signatureCount' => 0,
+                'conclusion' => 'OK',
+            ])),
+        ]), $history);
+
+        $response = $esign->signVerification($this->samplePdf, 'pdf-secret');
+
+        $this->assertTrue($response->isSuccess());
+        $payload = json_decode((string) $history[0]['request']->getBody(), true);
+        $this->assertArrayHasKey('file', $payload);
+        $this->assertSame('pdf-secret', $payload['password']);
+        $this->assertStringContainsString('/api/v2/verify/pdf', (string) $history[0]['request']->getUri());
+    }
+
+    public function testEmptyFileMapOnSignInvisibleMultipleThrows(): void
+    {
+        $esign = $this->client(new MockHandler([]));
+
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('fileMap must not be empty');
+        $esign->signInvisibleMultiple('secret', []);
+    }
+
+    public function testSignWithoutPassphraseAndWithoutTotpThrows(): void
+    {
+        $esign = $this->client(new MockHandler([]));
+
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Either passphrase or totp is required for V2 signing');
+        $esign->sign([$this->samplePdf], [SignatureProperties::invisible()], null, null);
+    }
+
+    public function testRequestSignTotpWithoutIdentityThrows(): void
+    {
+        $esign = $this->bareClient(new MockHandler([]));
+
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Either NIK or email is required to request sign TOTP');
+        $esign->requestSignTotp(null, null, 1);
+    }
+
+    public function testCheckUserStatusWithoutIdentityThrows(): void
+    {
+        $esign = $this->bareClient(new MockHandler([]));
+
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Either NIK or email is required to check user status');
+        $esign->checkUserStatus();
+    }
+
+    public function testSealPdfEmptyFilesThrows(): void
+    {
+        $esign = $this->client(new MockHandler([]));
+
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('At least one PDF file is required for seal');
+        $esign->sealPdf('SUB-1', '123456', [], [SignatureProperties::invisible()]);
     }
 }
