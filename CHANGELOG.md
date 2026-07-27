@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.4] - 2026-07-27
+
+### Added
+- `docs/ci3.md` — CodeIgniter 3 integration guide
+- Link to the CI3 guide from README ("Framework-specific guides")
+
 ## [1.0.3] - 2026-07-27
 
 ### Fixed
@@ -48,7 +54,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Usage examples and README
 - GitHub Actions PHPUnit workflow
 
-[Unreleased]: https://github.com/kiiskominfokepri/esign-php/compare/v1.0.3...HEAD
+[Unreleased]: https://github.com/kiiskominfokepri/esign-php/compare/v1.0.4...HEAD
+[1.0.4]: https://github.com/kiiskominfokepri/esign-php/compare/v1.0.3...v1.0.4
 [1.0.3]: https://github.com/kiiskominfokepri/esign-php/compare/v1.0.2...v1.0.3
 [1.0.2]: https://github.com/kiiskominfokepri/esign-php/compare/v1.0.1...v1.0.2
 [1.0.1]: https://github.com/kiiskominfokepri/esign-php/compare/v1.0.0...v1.0.1
