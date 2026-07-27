@@ -2,7 +2,7 @@
     "name": "kiiskominfokepri/esign-php",
     "description": "PHP Client Library for BSrE (Balai Sertifikasi Elektronik) Esign Client Service API v1 & v2",
     "type": "library",
-    "license": "proprietary",
+    "license": "GPL-3.0-or-later",
     "keywords": [
         "esign",
         "bsre",
@@ -42,8 +42,6 @@
     "minimum-stability": "stable",
     "prefer-stable": true,
     "config": {
-        "sort-packages": true,
-        "platform": {
-        }
+        "sort-packages": true
     }
 }
