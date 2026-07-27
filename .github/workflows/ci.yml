@@ -12,12 +12,20 @@ permissions:
 jobs:
   test:
     name: PHP ${{ matrix.php }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
 
     strategy:
       fail-fast: false
       matrix:
-        php: ['8.0', '8.1', '8.2', '8.3', '8.4']
+        php:
+          - '7.2'
+          - '7.3'
+          - '7.4'
+          - '8.0'
+          - '8.1'
+          - '8.2'
+          - '8.3'
+          - '8.4'
 
     steps:
       - name: Checkout
@@ -42,8 +50,8 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-php-${{ matrix.php }}-
 
-      - name: Install dependencies
-        run: composer install --prefer-dist --no-interaction --no-progress
+      - name: Install dependencies for PHP runtime
+        run: composer update --prefer-dist --no-interaction --no-progress
 
       - name: Run PHPUnit
         run: composer test
