@@ -54,6 +54,10 @@ For local path development:
 composer install
 ```
 
+### Framework-specific guides
+
+- [CodeIgniter 3 integration](docs/ci3.md)
+
 ## Authentication
 
 Both V1 and V2 use **HTTP Basic Auth** with credentials issued by the Esign Client Service administrator (`username` / `password`).
