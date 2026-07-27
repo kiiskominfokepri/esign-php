@@ -8,7 +8,7 @@ Based on *Petunjuk Teknis Penggunaan API Esign Client Service v2.2.1*.
 
 ## Requirements
 
-- PHP 8.0+
+- PHP 7.2.5+ (or 8.0+)
 - ext-json, ext-fileinfo
 - Composer
 
@@ -153,11 +153,12 @@ $props = SignatureProperties::visible('/path/ttd.png', 1, 100, 100, 150, 50);
 $response = $esign->signVisible($passphrase, '/path/doc.pdf', $props);
 
 // Low-level (multiple files + custom properties + TOTP)
+// Args: filePaths, signatureProperties, passphrase, totp (optional instead of passphrase)
 $response = $esign->sign(
     ['/path/a.pdf', '/path/b.pdf'],
     [SignatureProperties::invisible()],
-    passphrase: $passphrase,
-    totp: $totp // optional instead of passphrase
+    $passphrase,
+    $totp
 );
 ```
 
@@ -165,7 +166,8 @@ $response = $esign->sign(
 
 ```php
 // Request sign OTP (sent to email)
-$esign->requestSignTotp(fileCount: 1);
+// Args: nik, email, fileCount
+$esign->requestSignTotp(null, null, 1);
 
 // Certificate status (only ISSUE can sign)
 $status = $esign->checkUserStatus();
