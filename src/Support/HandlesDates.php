@@ -13,7 +13,7 @@ trait HandlesDates
         if (str_contains($date, 'T')) {
             try {
                 return new \DateTimeImmutable($date);
-            } catch (\Exception) {
+            } catch (\Exception $e) {
                 return null;
             }
         }
@@ -25,7 +25,7 @@ trait HandlesDates
 
         try {
             return new \DateTimeImmutable($date);
-        } catch (\Exception) {
+        } catch (\Exception $e) {
             return null;
         }
     }

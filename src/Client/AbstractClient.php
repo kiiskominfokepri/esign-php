@@ -10,10 +10,17 @@ use Psr\Http\Message\ResponseInterface;
 
 abstract class AbstractClient
 {
-    protected ClientInterface $httpClient;
-    protected string $baseUrl;
-    protected ?string $nik = null;
-    protected ?string $email = null;
+    /** @var ClientInterface */
+    protected $httpClient;
+
+    /** @var string */
+    protected $baseUrl;
+
+    /** @var string|null */
+    protected $nik = null;
+
+    /** @var string|null */
+    protected $email = null;
 
     /**
      * @param array<string, mixed> $guzzleOptions Extra Guzzle client options
@@ -40,7 +47,10 @@ abstract class AbstractClient
         ], $guzzleOptions));
     }
 
-    public function setNIK(?string $nik): static
+    /**
+     * @return $this
+     */
+    public function setNIK(?string $nik): self
     {
         $this->nik = $nik;
         return $this;
@@ -51,7 +61,10 @@ abstract class AbstractClient
         return $this->nik;
     }
 
-    public function setEmail(?string $email): static
+    /**
+     * @return $this
+     */
+    public function setEmail(?string $email): self
     {
         $this->email = $email;
         return $this;

@@ -4,10 +4,16 @@ namespace KiisKepri\Esign\Exception;
 
 class ApiException extends EsignException
 {
-    private int $httpStatus;
-    private mixed $responseBody;
+    /** @var int */
+    private $httpStatus;
 
-    public function __construct(string $message, int $httpStatus = 0, mixed $responseBody = null, ?\Throwable $previous = null)
+    /** @var mixed */
+    private $responseBody;
+
+    /**
+     * @param mixed $responseBody
+     */
+    public function __construct(string $message, int $httpStatus = 0, $responseBody = null, ?\Throwable $previous = null)
     {
         parent::__construct($message, $httpStatus, $previous);
         $this->httpStatus = $httpStatus;
@@ -19,7 +25,10 @@ class ApiException extends EsignException
         return $this->httpStatus;
     }
 
-    public function getResponseBody(): mixed
+    /**
+     * @return mixed
+     */
+    public function getResponseBody()
     {
         return $this->responseBody;
     }
