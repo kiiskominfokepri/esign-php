@@ -245,6 +245,45 @@ if (!$response->isSuccess()) {
 }
 ```
 
+## Logging / Audit Trail untuk Proses TTE
+
+Berdasarkan persyaratan penggunaan **TTE dari BSR-E**, aplikasi yang menggunakan proses tanda tangan elektronik **wajib mencatat log** setiap proses TTE, termasuk payload respon dari proses sign dokumen.
+
+Library ini sudah menyediakan akses ke **raw payload** untuk kebutuhan tersebut.
+
+### Method yang tersedia
+
+Semua response object (`SignResponse`, `VerifyResponse`, `JsonResponse`) mewarisi method berikut dari `BaseResponse`:
+
+| Method | Return Type | Deskripsi |
+|--------|-------------|-----------|
+| `getRawBody()` | `string` | Isi body HTTP response mentah |
+| `getResponse()` | `ResponseInterface` | Objek PSR-7 response lengkap |
+| `getData()` | `mixed` | Data response yang sudah didecode (array/null) |
+
+### Contoh penggunaan
+
+```php
+use KiisKepri\Esign\EsignFactory;
+
+$esign = EsignFactory::v2($baseUrl, $username, $password);
+$response = $esign->signInvisible($passphrase, $filePath);
+
+// Cara 1 — via method library
+$rawPayload = $response->getRawBody();
+
+// Cara 2 — langsung dari PSR-7 ResponseInterface
+$raw = (string) $response->getResponse()->getBody();
+
+// Cara 3 — data yang sudah didecode (untuk response JSON seperti V2)
+$data = $response->getData();
+```
+
+### Catatan
+
+- Method **logging** (penyimpanan raw payload) tidak disediakan oleh library. Developer bebas memilih cara logging sesuai kebutuhan aplikasi.
+- Pastikan `getRawBody()` atau `getResponse()->getBody()` dipanggil **sebelum** objek response dihapus, karena body PSR-7 bersifat stream (drain-once).
+
 ## Testing
 
 ```bash
